@@ -1,0 +1,482 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "content-pipeline-pro",
+        "options": {}
+      },
+      "name": "Webhook (Topic Input)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -1072,
+        48
+      ],
+      "id": "dd24a225-dd6f-4580-a6b0-429a85683df3",
+      "webhookId": "392b5f82-4f9c-42d2-861f-4881615ae3b2"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Content Topic: {{ $json.body.topic }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are an expert Content Strategist. Analyze the incoming core topic. Extract the top 3 sub-topics or pillars for a content campaign. You MUST output valid JSON containing a single key 'sub_topics' which is an array of 3 strings."
+            }
+          ]
+        }
+      },
+      "name": "Content Planner (Extractor)",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [
+        -864,
+        192
+      ],
+      "id": "4d3bc4ee-0ff5-47ae-8be3-26000e986d73"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ JSON.stringify($json.output.sub_topics) }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are an SEO and Market Trends Specialist. Review the proposed content pillars and evaluate keyword competitiveness. Output valid JSON with exactly two keys: 'keyword_difficulty' (strictly choose 'Low', 'Medium', or 'High') and 'competitor_angles' (an array of strings highlighting how others cover this)."
+            }
+          ]
+        }
+      },
+      "name": "SEO Specialist",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [
+        -592,
+        112
+      ],
+      "id": "ffc0027b-3618-4605-a751-e4b89f366f1f",
+      "alwaysOutputData": false,
+      "executeOnce": false,
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Pillars: {{ JSON.stringify($('Content Planner (Extractor)').item.json.output.sub_topics) }}\n\nSEO Market Analysis: {{ JSON.stringify($json.output) }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a Creative Video Director. Review the provided content pillars. Evaluate the production complexity and resource requirements. You MUST output valid JSON with exactly two keys: 'production_score' (an integer from 1 to 10 based on asset demands) and 'recommended_formats' (an array of strings representing ideal mediums like YouTube Video, TikTok, Blog, Info-graphic)."
+            }
+          ]
+        }
+      },
+      "name": "Creative Director (Reviewer)",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [
+        -336,
+        368
+      ],
+      "id": "1b5906f3-9762-47e5-a931-e0f09ca85c6b"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "1",
+              "leftValue": "={{ $json.output.production_score }}",
+              "rightValue": 8,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            },
+            {
+              "id": "2",
+              "leftValue": "={{ $('SEO Specialist').item.json.output.keyword_difficulty }}",
+              "rightValue": "High",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Validation Router",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -16,
+        176
+      ],
+      "id": "33277f69-0355-4d37-bfed-aab7e00030e3"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -944,
+        400
+      ],
+      "id": "d9419e60-fb68-430e-af65-6b150ecc4fc1",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "fdIBF2X8V3xURzg9",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -624,
+        -160
+      ],
+      "id": "99752825-231c-4293-abf7-8488bf15e601",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "fdIBF2X8V3xURzg9",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -336,
+        512
+      ],
+      "id": "be557402-149a-4e7c-aaec-56766f6581aa",
+      "name": "Groq Chat Model2",
+      "credentials": {
+        "groqApi": {
+          "id": "fdIBF2X8V3xURzg9",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\"sub_topics\":[\"topic 1\",\"topic 2\",\"topic 3\"]}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -736,
+        400
+      ],
+      "id": "60e0c56b-d678-48da-848e-a312502500e4",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\"production_score\":5,\"recommended_formats\":[\"Short Video\",\"Blog Post\"]}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -176,
+        512
+      ],
+      "id": "63308f1c-f8e4-4a1a-b65f-ecf5d86933e6",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\"keyword_difficulty\":\"Medium\",\"competitor_angles\":[\"Angle A\",\"Angle B\"]}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -496,
+        -176
+      ],
+      "id": "2db81b84-444f-4d80-ae52-fdf72748aeae",
+      "name": "Structured Output Parser2"
+    },
+    {
+      "parameters": {
+        "sendTo": "r555sid@gmail.com",
+        "subject": "=Action Required: Heavy Resource Content Review [Production Score: {{$('Creative Director (Reviewer)').item.json.output.production_score}}]",
+        "emailType": "text",
+        "message": "=A highly complex or competitive content topic requires manual editorial review.\n\nProduction Score: {{ $json.output.production_score }}\nRecommended Formats: {{ $json.output.recommended_formats }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        336
+      ],
+      "id": "881458da-fa25-42ba-a76a-d161339676db",
+      "name": "Send a message",
+      "webhookId": "cbf176dc-9236-474a-a591-fd703b143b0a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "culF20WPcMwwEzh4",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1R55d54EaXHGl3RGPyRdJLeSO-RoUBK5K7_pCWtomZaA",
+          "mode": "list",
+          "cachedResultName": "n8n project",
+          "cachedResultUrl": "[https://docs.google.com/spreadsheets/d/1R55d54EaXHGl3RGPyRdJLeSO-RoUBK5K7_pCWtomZaA/edit?usp=drivesdk](https://docs.google.com/spreadsheets/d/1R55d54EaXHGl3RGPyRdJLeSO-RoUBK5K7_pCWtomZaA/edit?usp=drivesdk)"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "[https://docs.google.com/spreadsheets/d/1R55d54EaXHGl3RGPyRdJLeSO-RoUBK5K7_pCWtomZaA/edit#gid=0](https://docs.google.com/spreadsheets/d/1R55d54EaXHGl3RGPyRdJLeSO-RoUBK5K7_pCWtomZaA/edit#gid=0)"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Production Score": "={{ $('Creative Director (Reviewer)').item.json.output.production_score }}",
+            "Recommended Formats": "={{ $('Creative Director (Reviewer)').item.json.output.recommended_formats }}",
+            "Keyword Difficulty": "={{ $('SEO Specialist').item.json.output.keyword_difficulty }}",
+            "Content Topic": "={{ $('Webhook (Topic Input)').item.json.body.topic }}",
+            "Sub-Topics": "={{ $('Content Planner (Extractor)').item.json.output.sub_topics }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Content Topic",
+              "displayName": "Content Topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Sub-Topics",
+              "displayName": "Sub-Topics",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Keyword Difficulty",
+              "displayName": "Keyword Difficulty",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Production Score",
+              "displayName": "Production Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Recommended Formats",
+              "displayName": "Recommended Formats",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        176,
+        -48
+      ],
+      "id": "8a97d853-197b-4ba7-9451-d6745e91930b",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "bIZzBolg9wIpe77a",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook (Topic Input)": {
+      "main": [
+        [
+          {
+            "node": "Content Planner (Extractor)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Content Planner (Extractor)": {
+      "main": [
+        [
+          {
+            "node": "SEO Specialist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SEO Specialist": {
+      "main": [
+        [
+          {
+            "node": "Creative Director (Reviewer)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Creative Director (Reviewer)": {
+      "main": [
+        [
+          {
+            "node": "Validation Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validation Router": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Content Planner (Extractor)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "SEO Specialist",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Creative Director (Reviewer)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Content Planner (Extractor)",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Creative Director (Reviewer)",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "SEO Specialist",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f3facbbc859949aeec928b2bfa28b5ba31ea420f54ef93094d20813067a0ca73"
+  }
+}
